@@ -1,15 +1,22 @@
 function zeigeNotizen() {
 
     document.getElementById("app").innerHTML = `
-        <h2>Notizen</h2>
+
+        <h2>📝 Notizen</h2>
 
         <button onclick="neueNotiz()">
             + Neue Notiz
         </button>
 
-        <div id="notizen">
-            <p>Hier werden später eure Notizen angezeigt.</p>
+        <div class="liste">
+
+            <p>
+                Hier werden später eure gemeinsamen
+                Notizen angezeigt.
+            </p>
+
         </div>
+
     `;
 }
 
@@ -17,26 +24,33 @@ function zeigeNotizen() {
 function zeigeGlossar() {
 
     document.getElementById("app").innerHTML = `
-        <h2>Glossar</h2>
+
+        <h2>📖 Glossar</h2>
 
         <button onclick="neuerBegriff()">
             + Neuer Begriff
         </button>
 
-        <div id="glossar">
-            <p>Hier werden später eure Begriffe angezeigt.</p>
+        <div class="liste">
+
+            <p>
+                Hier werden später eure
+                Begriffserklärungen angezeigt.
+            </p>
+
         </div>
+
     `;
 }
 
 
 function neueNotiz() {
 
-    alert("Hier wird später eine neue Notiz erstellt.");
+    alert("Die Funktion zum Erstellen einer Notiz kommt als Nächstes.");
 }
 
 
 function neuerBegriff() {
 
-    alert("Hier wird später ein neuer Begriff erstellt.");
+    alert("Die Funktion zum Erstellen eines Begriffs kommt als Nächstes.");
 }

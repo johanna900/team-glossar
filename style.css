@@ -220,3 +220,55 @@ a {
         transition: none !important;
     }
 }
+
+.begriff-aktionen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.begriff-aktionen button {
+    width: auto;
+    margin: 0;
+}
+
+.bearbeiten-button {
+    background: #e8efff;
+    color: #2349a5;
+}
+
+.bearbeiten-button:hover {
+    background: #d8e4ff;
+}
+
+.loeschen-button {
+    background: #fff0f0;
+    color: #b42318;
+}
+
+.loeschen-button:hover {
+    background: #ffe0e0;
+}
+
+.formularaktionen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.formularaktionen button {
+    width: auto;
+    margin: 0;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.speicher-erfolg {
+    color: #18794e;
+    font-weight: 600;
+}

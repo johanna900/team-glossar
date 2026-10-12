@@ -4,6 +4,30 @@ const API_URL = "https://script.google.com/macros/s/AKfycbybsJKxWfUbeysLy2QdTTE4
 let alleBegriffe = [];
 let suchbegriffAktuell = "";
 
+    const app = document.getElementById("app");
+setzeAktivenBereich("glossar");
+    app.classList.remove("bereich-glossar", "bereich-notizen");
+    app.classList.add(
+        bereich === "notizen" ? "bereich-notizen" : "bereich-glossar"
+    );
+
+    document.querySelectorAll("header nav button").forEach(button => {
+        button.classList.remove("aktiv-glossar", "aktiv-notizen");
+        button.removeAttribute("aria-current");
+    });
+
+    const buttons = document.querySelectorAll("header nav button");
+    const index = bereich === "notizen" ? 1 : 0;
+    const aktiv = buttons[index];
+
+    if (aktiv) {
+        aktiv.classList.add(
+            bereich === "notizen" ? "aktiv-notizen" : "aktiv-glossar"
+        );
+        aktiv.setAttribute("aria-current", "page");
+    }
+}
+
 async function apiAnfrage(daten) {
     await fetch(API_URL, {
         method: "POST",
@@ -330,7 +354,8 @@ async function loeschenBegriff(begriff) {
 }
 
 // Notizen – noch ohne Speicherung
-function zeigeNotizen() {
+function zeigeNotizen() {setzeAktivenBereich("notizen");
+
     document.getElementById("app").innerHTML = `
         <div class="seitenkopf">
             <div>

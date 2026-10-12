@@ -725,3 +725,75 @@ textarea {
         transition: none !important;
     }
 }
+
+/* Bereichsfarben: Glossar und Notizen */
+
+:root {
+    --glossar-farbe: #3659c9;
+    --glossar-hell: #edf2ff;
+    --notizen-farbe: #147d70;
+    --notizen-hell: #e8f6f2;
+}
+
+/* Aktiver Navigationsbereich */
+
+header nav button.aktiv-glossar {
+    background: var(--glossar-hell);
+    border-color: #d5e0ff;
+    color: var(--glossar-farbe);
+}
+
+header nav button.aktiv-notizen {
+    background: var(--notizen-hell);
+    border-color: #c8e9df;
+    color: var(--notizen-farbe);
+}
+
+/* Akzent im Seitenkopf */
+
+#app.bereich-glossar {
+    --bereich-farbe: var(--glossar-farbe);
+    --bereich-hell: var(--glossar-hell);
+}
+
+#app.bereich-notizen {
+    --bereich-farbe: var(--notizen-farbe);
+    --bereich-hell: var(--notizen-hell);
+}
+
+#app.bereich-glossar .seitenlabel,
+#app.bereich-notizen .seitenlabel {
+    color: var(--bereich-farbe);
+}
+
+#app.bereich-glossar .seitenkopf > button,
+#app.bereich-notizen .seitenkopf > button {
+    background: var(--bereich-farbe);
+}
+
+#app.bereich-glossar .seitenkopf > button:hover,
+#app.bereich-notizen .seitenkopf > button:hover {
+    filter: brightness(0.9);
+}
+
+/* Suchfeld und Formulare erhalten den passenden Fokus */
+
+#app.bereich-glossar input:focus,
+#app.bereich-glossar textarea:focus {
+    border-color: var(--glossar-farbe);
+}
+
+#app.bereich-notizen input:focus,
+#app.bereich-notizen textarea:focus {
+    border-color: var(--notizen-farbe);
+}
+
+/* Dezenter Farbstreifen auf den Karten */
+
+#app.bereich-glossar .begriffkarte {
+    border-top: 3px solid var(--glossar-farbe);
+}
+
+#app.bereich-notizen .notizkarte {
+    border-top: 3px solid var(--notizen-farbe);
+}

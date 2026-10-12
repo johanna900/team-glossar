@@ -1,21 +1,48 @@
-
 const API_URL = "https://script.google.com/macros/s/AKfycbybsJKxWfUbeysLy2QdTTE4MT45PWjWnwMLx_yQaVslSt7J2Z4NXBw-fNvkXXnCgAog/exec";
+
+let alleBegriffe = [];
 
 async function zeigeGlossar() {
     const app = document.getElementById("app");
 
     app.innerHTML = `
-        <h2>📖 Glossar</h2>
-        <button id="neuerBegriffButton">+ Neuer Begriff</button>
-        <div class="liste" id="glossarListe">
-            <p>Glossar wird geladen ...</p>
+        <div class="seitenkopf">
+            <div>
+                <p class="seitenlabel">WISSEN & LEXIKON</p>
+                <h2>📖 TeamGlossar</h2>
+                <p class="untertitel">
+                    Fachbegriffe einfach finden und verstehen.
+                </p>
+            </div>
+            <button id="neuerBegriffButton">
+                + Neuer Begriff
+            </button>
+        </div>
+
+        <div class="suchbereich">
+            <label for="glossarSuche">Glossar durchsuchen</label>
+            <input
+                id="glossarSuche"
+                type="search"
+                placeholder="Begriff, Erklärung oder Kategorie suchen ..."
+                autocomplete="off"
+            >
+            <p id="trefferInfo" class="hinweis">
+                Glossar wird geladen ...
+            </p>
+        </div>
+
+        <div class="liste" id="glossarListe" aria-live="polite">
+            <p>Begriffe werden geladen ...</p>
         </div>
     `;
 
     document.getElementById("neuerBegriffButton")
         .addEventListener("click", neuerBegriff);
 
+    const suche = document.getElementById("glossarSuche");
     const liste = document.getElementById("glossarListe");
+    const trefferInfo = document.getElementById("trefferInfo");
 
     try {
         const antwort = await fetch(API_URL);
@@ -30,36 +57,108 @@ async function zeigeGlossar() {
             throw new Error("Die API hat keine Liste geliefert.");
         }
 
-        liste.replaceChildren();
+        alleBegriffe = begriffe;
 
-        if (begriffe.length === 0) {
-            liste.textContent = "Noch keine Begriffe vorhanden.";
-            return;
+        function renderBegriffe() {
+            const suchtext = suche.value
+                .trim()
+                .toLocaleLowerCase("de");
+
+            const gefiltert = alleBegriffe.filter(begriff => {
+                const text = [
+                    begriff.term,
+                    begriff.definition,
+                    begriff.category
+                ].filter(Boolean).join(" ").toLocaleLowerCase("de");
+
+                return text.includes(suchtext);
+            });
+
+            liste.replaceChildren();
+
+            trefferInfo.textContent =
+                `${gefiltert.length} von ${alleBegriffe.length} Begriffen`;
+
+            if (gefiltert.length === 0) {
+                const leer = document.createElement("div");
+                leer.className = "leerzustand";
+
+                const titel = document.createElement("h3");
+                titel.textContent = suchtext
+                    ? "Keine Treffer gefunden"
+                    : "Noch keine Begriffe vorhanden";
+
+                const text = document.createElement("p");
+                text.textContent = suchtext
+                    ? "Versuche einen anderen Suchbegriff."
+                    : "Füge den ersten Begriff zu eurem TeamGlossar hinzu.";
+
+                leer.append(titel, text);
+                liste.appendChild(leer);
+                return;
+            }
+
+            gefiltert.forEach(begriff => {
+                const eintrag = document.createElement("article");
+                eintrag.className = "begriffkarte";
+
+                const titel = document.createElement("h3");
+                titel.textContent = begriff.term || "Ohne Titel";
+
+                eintrag.appendChild(titel);
+
+                if (begriff.category) {
+                    const kategorie = document.createElement("span");
+                    kategorie.className = "kategorietag";
+                    kategorie.textContent = begriff.category;
+                    eintrag.appendChild(kategorie);
+                }
+
+                const definition = document.createElement("p");
+                definition.className = "begriffdefinition";
+                definition.textContent =
+                    begriff.definition || "Keine Definition vorhanden.";
+
+                eintrag.appendChild(definition);
+                liste.appendChild(eintrag);
+            });
         }
 
-        begriffe.forEach(begriff => {
-            const eintrag = document.createElement("article");
-            const titel = document.createElement("h3");
-            const definition = document.createElement("p");
+        suche.addEventListener("input", renderBegriffe);
+        renderBegriffe();
 
-            titel.textContent = begriff.term || "";
-            definition.textContent = begriff.definition || "";
-
-            eintrag.append(titel, definition);
-            liste.appendChild(eintrag);
-        });
     } catch (fehler) {
-        liste.textContent =
-            "Glossar konnte nicht geladen werden: " + fehler.message;
+        liste.replaceChildren();
+
+        const meldung = document.createElement("p");
+        meldung.className = "fehlermeldung";
+        meldung.textContent =
+            "Glossar konnte nicht geladen werden. Bitte versuche es erneut.";
+
+        liste.appendChild(meldung);
+        trefferInfo.textContent = fehler.message;
     }
 }
 
 function zeigeNotizen() {
     document.getElementById("app").innerHTML = `
-        <h2>📝 Notizen</h2>
-        <button id="neueNotizButton">+ Neue Notiz</button>
-        <div class="liste">
-            <p>Hier werden später eure gemeinsamen Notizen angezeigt.</p>
+        <div class="seitenkopf">
+            <div>
+                <p class="seitenlabel">TEAM & ZUSAMMENARBEIT</p>
+                <h2>📝 Notizen</h2>
+                <p class="untertitel">
+                    Ideen und wichtige Informationen sammeln.
+                </p>
+            </div>
+            <button id="neueNotizButton">+ Neue Notiz</button>
+        </div>
+
+        <div class="leerzustand">
+            <h3>Euer Notizbereich</h3>
+            <p>
+                Die gemeinsame Notizfunktion ist noch nicht eingerichtet.
+                Eure Notizen werden hier noch nicht gespeichert.
+            </p>
         </div>
     `;
 
@@ -68,81 +167,32 @@ function zeigeNotizen() {
 }
 
 function neueNotiz() {
-    alert("Die Funktion zum Erstellen einer Notiz kommt als Nächstes.");
+    alert(
+        "Die Notizfunktion ist noch nicht eingerichtet. " +
+        "Wir können sie als nächsten Schritt ergänzen."
+    );
 }
 
 function neuerBegriff() {
     const liste = document.getElementById("glossarListe");
 
     liste.innerHTML = `
-        <h3>Neuen Begriff hinzufügen</h3>
+        <div class="formularbereich">
+            <h3>Neuen Begriff hinzufügen</h3>
+            <p class="untertitel">
+                Teile dein Wissen mit dem Team.
+            </p>
 
-        <form id="begriffFormular">
-            <label for="term">Begriff</label>
-            <input id="term" name="term" required>
+            <form id="begriffFormular">
+                <label for="term">Begriff *</label>
+                <input
+                    id="term"
+                    name="term"
+                    required
+                    maxlength="200"
+                    placeholder="z. B. Onboarding"
+                >
 
-            <label for="category">Kategorie</label>
-            <input id="category" name="category">
-
-            <label for="definition">Definition</label>
-            <textarea id="definition" name="definition" required></textarea>
-
-            <label for="author">Autor</label>
-            <input id="author" name="author">
-
-            <button type="submit">Begriff speichern</button>
-            <button type="button" id="abbrechenButton">Abbrechen</button>
-        </form>
-
-        <p id="speicherStatus"></p>
-    `;
-
-    document.getElementById("abbrechenButton")
-        .addEventListener("click", zeigeGlossar);
-
-
-document.getElementById("begriffFormular")
-    .addEventListener("submit", async function(event) {
-        event.preventDefault();
-
-        const formular = event.currentTarget;
-        const status = document.getElementById("speicherStatus");
-
-        const daten = {
-            term: formular.elements.term.value.trim(),
-            category: formular.elements.category.value.trim(),
-            definition: formular.elements.definition.value.trim(),
-            author: formular.elements.author.value.trim()
-        };
-
-        if (!daten.term || !daten.definition) {
-            status.textContent = "Bitte Begriff und Definition ausfüllen.";
-            return;
-        }
-
-        status.textContent = "Begriff wird gespeichert ...";
-
-        try {
-            await fetch(API_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                body: JSON.stringify(daten)
-            });
-
-
-            status.textContent = "Begriff wurde gesendet! Glossar wird aktualisiert ...";
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            await zeigeGlossar();
-
-
-        } catch (fehler) {
-            status.textContent =
-                "Fehler beim Senden: " + fehler.message;
-        }
-    });
-}
+                <label for="category">Kategorie</label>
+                <input
+                    id="category"

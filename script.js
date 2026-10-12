@@ -100,11 +100,44 @@ function neuerBegriff() {
     document.getElementById("abbrechenButton")
         .addEventListener("click", zeigeGlossar);
 
-    document.getElementById("begriffFormular")
-        .addEventListener("submit", function(event) {
-            event.preventDefault();
 
-            document.getElementById("speicherStatus").textContent =
-                "Die Verbindung zum Speichern richten wir als Nächstes ein.";
-        });
+document.getElementById("begriffFormular")
+    .addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const formular = event.currentTarget;
+        const status = document.getElementById("speicherStatus");
+
+        const daten = {
+            term: formular.elements.term.value.trim(),
+            category: formular.elements.category.value.trim(),
+            definition: formular.elements.definition.value.trim(),
+            author: formular.elements.author.value.trim()
+        };
+
+        if (!daten.term || !daten.definition) {
+            status.textContent = "Bitte Begriff und Definition ausfüllen.";
+            return;
+        }
+
+        status.textContent = "Begriff wird gespeichert ...";
+
+        try {
+            await fetch(API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(daten)
+            });
+
+            status.textContent =
+                "Anfrage gesendet. Bitte prüfe, ob der Begriff in Google Sheets erscheint.";
+
+        } catch (fehler) {
+            status.textContent =
+                "Fehler beim Senden: " + fehler.message;
+        }
+    });
 }

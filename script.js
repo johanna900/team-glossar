@@ -66,8 +66,45 @@ function zeigeNotizen() {
         .addEventListener("click", neueNotiz);
 }
 
-function neueNotiz() {
-    alert("Die Funktion zum Erstellen einer Notiz kommt als Nächstes.");
+
+function neuerBegriff() {
+    const liste = document.getElementById("glossarListe");
+
+    liste.innerHTML = `
+        <h3>Neuen Begriff hinzufügen</h3>
+
+        <form id="begriffFormular">
+            <label for="term">Begriff</label>
+            <input id="term" name="term" required>
+
+            <label for="category">Kategorie</label>
+            <input id="category" name="category">
+
+            <label for="definition">Definition</label>
+            <textarea id="definition" name="definition" required></textarea>
+
+            <label for="author">Autor</label>
+            <input id="author" name="author">
+
+            <button type="submit">Begriff speichern</button>
+            <button type="button" id="abbrechenButton">Abbrechen</button>
+        </form>
+
+        <p id="speicherStatus"></p>
+    `;
+
+    document.getElementById("abbrechenButton")
+        .addEventListener("click", zeigeGlossar);
+
+    document.getElementById("begriffFormular")
+        .addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            document.getElementById("speicherStatus").textContent =
+                "Die Verbindung zum Speichern richten wir als Nächstes ein.";
+        });
+}
+
 }
 
 function neuerBegriff() {

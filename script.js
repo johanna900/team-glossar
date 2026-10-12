@@ -19,6 +19,7 @@ async function zeigeGlossar() {
 
     try {
         const antwort = await fetch(API_URL);
+
         if (!antwort.ok) {
             throw new Error("HTTP " + antwort.status);
         }
@@ -66,6 +67,9 @@ function zeigeNotizen() {
         .addEventListener("click", neueNotiz);
 }
 
+function neueNotiz() {
+    alert("Die Funktion zum Erstellen einer Notiz kommt als Nächstes.");
+}
 
 function neuerBegriff() {
     const liste = document.getElementById("glossarListe");
@@ -97,16 +101,10 @@ function neuerBegriff() {
         .addEventListener("click", zeigeGlossar);
 
     document.getElementById("begriffFormular")
-        .addEventListener("submit", async function(event) {
+        .addEventListener("submit", function(event) {
             event.preventDefault();
 
             document.getElementById("speicherStatus").textContent =
                 "Die Verbindung zum Speichern richten wir als Nächstes ein.";
         });
-}
-
-}
-
-function neuerBegriff() {
-    alert("Die Speicherfunktion bauen wir als Nächstes ein.");
 }

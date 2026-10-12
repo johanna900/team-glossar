@@ -132,8 +132,13 @@ document.getElementById("begriffFormular")
                 body: JSON.stringify(daten)
             });
 
-            status.textContent =
-                "Anfrage gesendet. Bitte prüfe, ob der Begriff in Google Sheets erscheint.";
+
+            status.textContent = "Begriff wurde gesendet! Glossar wird aktualisiert ...";
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await zeigeGlossar();
+
 
         } catch (fehler) {
             status.textContent =

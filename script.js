@@ -22,7 +22,7 @@ async function zeigeGlossar(optionen = {}) {
         <div class="seitenkopf">
             <div>
                 <p class="seitenlabel">WISSEN & LEXIKON</p>
-                <h2>📖 TeamGlossar</h2>
+                <h2> TeamGlossar</h2>
                 <p class="untertitel">
                     Fachbegriffe einfach finden und verstehen.
                 </p>
@@ -335,7 +335,7 @@ function zeigeNotizen() {
         <div class="seitenkopf">
             <div>
                 <p class="seitenlabel">TEAM & ZUSAMMENARBEIT</p>
-                <h2>📝 Notizen</h2>
+                <h2> Notizen</h2>
                 <p class="untertitel">Ideen und wichtige Informationen sammeln.</p>
             </div>
             <button id="neueNotizButton">+ Neue Notiz</button>

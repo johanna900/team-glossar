@@ -3,11 +3,17 @@ const API_URL = "https://script.google.com/macros/s/AKfycbybsJKxWfUbeysLy2QdTTE4
 
 let alleBegriffe = [];
 let suchbegriffAktuell = "";
-let ladeFehler = null;
 
-// ------------------------------
-// GLOSSAR ANZEIGEN
-// ------------------------------
+async function apiAnfrage(daten) {
+    await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(daten)
+    });
+}
 
 async function zeigeGlossar(optionen = {}) {
     const app = document.getElementById("app");
@@ -32,10 +38,10 @@ async function zeigeGlossar(optionen = {}) {
                 placeholder="Begriff, Erklärung oder Kategorie suchen ..."
                 autocomplete="off"
             >
-            <p id="trefferInfo" class="hinweis">
-                Glossar wird geladen ...
-            </p>
+            <p id="trefferInfo" class="hinweis">Glossar wird geladen ...</p>
         </div>
+
+        <p id="glossarStatus" class="hinweis" role="status" aria-live="polite"></p>
 
         <div class="liste" id="glossarListe" aria-live="polite">
             <p>Begriffe werden geladen ...</p>
@@ -48,14 +54,12 @@ async function zeigeGlossar(optionen = {}) {
     const suche = document.getElementById("glossarSuche");
     const liste = document.getElementById("glossarListe");
     const trefferInfo = document.getElementById("trefferInfo");
+    const status = document.getElementById("glossarStatus");
 
     suche.value = optionen.suche ?? suchbegriffAktuell;
 
     function renderBegriffe() {
-        const suchtext = suche.value
-            .trim()
-            .toLocaleLowerCase("de");
-
+        const suchtext = suche.value.trim().toLocaleLowerCase("de");
         suchbegriffAktuell = suche.value;
 
         const gefiltert = alleBegriffe.filter(begriff => {
@@ -64,16 +68,12 @@ async function zeigeGlossar(optionen = {}) {
                 begriff.definition,
                 begriff.category,
                 begriff.author
-            ]
-                .filter(Boolean)
-                .join(" ")
-                .toLocaleLowerCase("de");
+            ].filter(Boolean).join(" ").toLocaleLowerCase("de");
 
             return text.includes(suchtext);
         });
 
         liste.replaceChildren();
-
         trefferInfo.textContent =
             `${gefiltert.length} von ${alleBegriffe.length} Begriffen`;
 
@@ -97,39 +97,53 @@ async function zeigeGlossar(optionen = {}) {
         }
 
         gefiltert.forEach(begriff => {
-            const eintrag = document.createElement("article");
-            eintrag.className = "begriffkarte";
+            const karte = document.createElement("article");
+            karte.className = "begriffkarte";
 
             const titel = document.createElement("h3");
             titel.textContent = begriff.term || "Ohne Titel";
-            eintrag.appendChild(titel);
+            karte.appendChild(titel);
 
             if (begriff.category) {
                 const kategorie = document.createElement("span");
                 kategorie.className = "kategorietag";
                 kategorie.textContent = begriff.category;
-                eintrag.appendChild(kategorie);
+                karte.appendChild(kategorie);
             }
 
             const definition = document.createElement("p");
             definition.className = "begriffdefinition";
             definition.textContent =
                 begriff.definition || "Keine Definition vorhanden.";
-
-            eintrag.appendChild(definition);
+            karte.appendChild(definition);
 
             if (begriff.author) {
                 const autor = document.createElement("p");
                 autor.className = "hinweis";
-                autor.textContent = `Eingetragen von: ${begriff.author}`;
-                eintrag.appendChild(autor);
+                autor.textContent = "Eingetragen von: " + begriff.author;
+                karte.appendChild(autor);
             }
 
-            liste.appendChild(eintrag);
+            const aktionen = document.createElement("div");
+            aktionen.className = "begriff-aktionen";
+
+            const bearbeiten = document.createElement("button");
+            bearbeiten.type = "button";
+            bearbeiten.className = "bearbeiten-button";
+            bearbeiten.textContent = "✏️ Bearbeiten";
+            bearbeiten.addEventListener("click", () => bearbeitenBegriff(begriff));
+
+            const loeschen = document.createElement("button");
+            loeschen.type = "button";
+            loeschen.className = "loeschen-button";
+            loeschen.textContent = "🗑️ Löschen";
+            loeschen.addEventListener("click", () => loeschenBegriff(begriff));
+
+            aktionen.append(bearbeiten, loeschen);
+            karte.appendChild(aktionen);
+            liste.appendChild(karte);
         });
     }
-
-    suche.addEventListener("input", renderBegriffe);
 
     try {
         const antwort = await fetch(API_URL);
@@ -138,106 +152,73 @@ async function zeigeGlossar(optionen = {}) {
             throw new Error("HTTP " + antwort.status);
         }
 
-        const begriffe = await antwort.json();
+        const daten = await antwort.json();
 
-        if (!Array.isArray(begriffe)) {
-            throw new Error("Die API hat keine Liste geliefert.");
+        if (!Array.isArray(daten)) {
+            throw new Error("Die API hat keine Begriffsliste geliefert.");
         }
 
-        alleBegriffe = begriffe;
-        ladeFehler = null;
+        alleBegriffe = daten;
         renderBegriffe();
 
-        // Nach dem Speichern prüfen, ob der neue Begriff sichtbar ist.
+        if (optionen.status) {
+            status.textContent = optionen.status;
+        }
+
         if (optionen.neuerTerm) {
-            const gespeichert = alleBegriffe.some(begriff =>
+            const vorhanden = alleBegriffe.some(begriff =>
                 String(begriff.term || "").trim().toLocaleLowerCase("de") ===
                 optionen.neuerTerm.trim().toLocaleLowerCase("de")
             );
 
-            const status = document.getElementById("glossarStatus");
-
-            if (status) {
-                status.textContent = gespeichert
-                    ? `„${optionen.neuerTerm}“ ist im Glossar sichtbar.`
-                    : `Der Eintrag „${optionen.neuerTerm}“ ist noch nicht sichtbar. Bitte prüfe später erneut, ob er in Google Sheets gespeichert wurde.`;
-                status.className = gespeichert
-                    ? "speicher-erfolg"
-                    : "hinweis";
-            }
+            status.textContent = vorhanden
+                ? `„${optionen.neuerTerm}“ ist im Glossar sichtbar.`
+                : `„${optionen.neuerTerm}“ ist noch nicht sichtbar. Bitte prüfe den Eintrag in Google Sheets.`;
         }
     } catch (fehler) {
-        ladeFehler = fehler;
-
         liste.replaceChildren();
 
         const meldung = document.createElement("p");
         meldung.className = "fehlermeldung";
         meldung.textContent =
-            "Glossar konnte nicht geladen werden. Bitte prüfe die Verbindung und versuche es erneut.";
+            "Glossar konnte nicht geladen werden. Bitte versuche es erneut.";
 
         liste.appendChild(meldung);
         trefferInfo.textContent = fehler.message;
     }
 }
 
-// ------------------------------
-// NEUEN BEGRIFF HINZUFÜGEN
-// ------------------------------
-
-function neuerBegriff() {
+// Formular zum Anlegen oder Bearbeiten öffnen
+function begriffFormularAnzeigen(begriff = null) {
     const liste = document.getElementById("glossarListe");
+    const istBearbeitung = Boolean(begriff);
 
     liste.innerHTML = `
         <div class="formularbereich">
-            <h3>Neuen Begriff hinzufügen</h3>
-            <p class="untertitel">
-                Teile dein Wissen mit dem Team.
-            </p>
+            <h3>${istBearbeitung ? "Begriff bearbeiten" : "Neuen Begriff hinzufügen"}</h3>
+            <p class="untertitel">Teile dein Wissen mit dem Team.</p>
 
             <form id="begriffFormular">
                 <label for="term">Begriff *</label>
-                <input
-                    id="term"
-                    name="term"
-                    required
-                    maxlength="200"
-                    placeholder="z. B. Onboarding"
-                >
+                <input id="term" name="term" required maxlength="200"
+                    placeholder="z. B. Onboarding">
 
                 <label for="category">Kategorie</label>
-                <input
-                    id="category"
-                    name="category"
-                    maxlength="100"
-                    placeholder="z. B. Personal"
-                >
+                <input id="category" name="category" maxlength="100"
+                    placeholder="z. B. Personal">
 
                 <label for="definition">Definition *</label>
-                <textarea
-                    id="definition"
-                    name="definition"
-                    required
-                    maxlength="5000"
-                    rows="5"
-                    placeholder="Erkläre den Begriff ..."
-                ></textarea>
+                <textarea id="definition" name="definition" required
+                    maxlength="5000" rows="5"
+                    placeholder="Erkläre den Begriff ..."></textarea>
 
                 <label for="author">Autor</label>
-                <input
-                    id="author"
-                    name="author"
-                    maxlength="100"
-                    placeholder="Dein Name (optional)"
-                >
+                <input id="author" name="author" maxlength="100"
+                    placeholder="Dein Name (optional)">
 
                 <div class="formularaktionen">
-                    <button type="submit" id="speichernButton">
-                        Begriff speichern
-                    </button>
-                    <button type="button" id="abbrechenButton">
-                        Abbrechen
-                    </button>
+                    <button type="submit" id="speichernButton">Änderungen speichern</button>
+                    <button type="button" id="abbrechenButton">Abbrechen</button>
                 </div>
             </form>
 
@@ -245,86 +226,124 @@ function neuerBegriff() {
         </div>
     `;
 
+    const formular = document.getElementById("begriffFormular");
+
+    if (begriff) {
+        formular.elements.term.value = begriff.term || "";
+        formular.elements.category.value = begriff.category || "";
+        formular.elements.definition.value = begriff.definition || "";
+        formular.elements.author.value = begriff.author || "";
+    } else {
+        formular.elements.author.value = "";
+    }
+
     document.getElementById("abbrechenButton")
         .addEventListener("click", () => zeigeGlossar());
 
-    document.getElementById("begriffFormular")
-        .addEventListener("submit", async function(event) {
-            event.preventDefault();
+    formular.addEventListener("submit", async event => {
+        event.preventDefault();
 
-            const formular = event.currentTarget;
-            const status = document.getElementById("speicherStatus");
-            const speichernButton =
-                document.getElementById("speichernButton");
+        const status = document.getElementById("speicherStatus");
+        const button = document.getElementById("speichernButton");
 
-            const daten = {
-                term: formular.elements.term.value.trim(),
-                category: formular.elements.category.value.trim(),
-                definition: formular.elements.definition.value.trim(),
-                author: formular.elements.author.value.trim()
-            };
+        const daten = {
+            action: istBearbeitung ? "update" : "create",
+            term: formular.elements.term.value.trim(),
+            category: formular.elements.category.value.trim(),
+            definition: formular.elements.definition.value.trim(),
+            author: formular.elements.author.value.trim()
+        };
 
-            if (!daten.term || !daten.definition) {
-                status.textContent =
-                    "Bitte Begriff und Definition ausfüllen.";
-                return;
-            }
+        if (istBearbeitung) {
+            daten.id = begriff.id;
+        }
 
-            speichernButton.disabled = true;
-            status.textContent = "Begriff wird gesendet ...";
+        if (!daten.term || !daten.definition) {
+            status.textContent = "Bitte Begriff und Definition ausfüllen.";
+            return;
+        }
 
-            try {
-                await fetch(API_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    },
-                    body: JSON.stringify(daten)
-                });
+        button.disabled = true;
+        status.textContent = "Speichervorgang wird ausgeführt ...";
 
-                status.textContent =
-                    "Anfrage gesendet. Prüfe den Eintrag im Glossar ...";
+        try {
+            await apiAnfrage(daten);
 
-                // Google Sheets braucht eventuell etwas Zeit.
-                await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 1200));
 
-                // Glossar neu laden und den neuen Begriff suchen.
-                await zeigeGlossar({
-                    neuerTerm: daten.term,
-                    suche: daten.term
-                });
-            } catch (fehler) {
-                status.textContent =
-                    "Fehler beim Senden: " + fehler.message;
-                speichernButton.disabled = false;
-            }
-        });
+            await zeigeGlossar({
+                suche: daten.term,
+                status: "Speicheranfrage gesendet. Bitte prüfe, ob der Eintrag aktualisiert wurde.",
+                neuerTerm: istBearbeitung ? null : daten.term
+            });
+        } catch (fehler) {
+            status.textContent =
+                "Fehler beim Senden: " + fehler.message;
+            button.disabled = false;
+        }
+    });
 }
 
-// ------------------------------
-// NOTIZEN
-// ------------------------------
+function neuerBegriff() {
+    begriffFormularAnzeigen();
+}
 
+function bearbeitenBegriff(begriff) {
+    if (!begriff.id) {
+        alert("Dieser Eintrag hat keine ID und kann nicht bearbeitet werden.");
+        return;
+    }
+
+    begriffFormularAnzeigen(begriff);
+}
+
+async function loeschenBegriff(begriff) {
+    if (!begriff.id) {
+        alert("Dieser Eintrag hat keine ID und kann nicht gelöscht werden.");
+        return;
+    }
+
+    const bestaetigt = confirm(
+        `Möchtest du den Begriff „${begriff.term}“ wirklich löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.`
+    );
+
+    if (!bestaetigt) return;
+
+    const status = document.getElementById("glossarStatus");
+    status.textContent = "Löschanfrage wird gesendet ...";
+
+    try {
+        await apiAnfrage({
+            action: "delete",
+            id: begriff.id
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        await zeigeGlossar({
+            suche: suchbegriffAktuell,
+            status: `Löschanfrage für „${begriff.term}“ gesendet. Bitte prüfe, ob der Eintrag verschwunden ist.`
+        });
+    } catch (fehler) {
+        status.textContent = "Fehler beim Löschen: " + fehler.message;
+    }
+}
+
+// Notizen – noch ohne Speicherung
 function zeigeNotizen() {
     document.getElementById("app").innerHTML = `
         <div class="seitenkopf">
             <div>
                 <p class="seitenlabel">TEAM & ZUSAMMENARBEIT</p>
                 <h2>📝 Notizen</h2>
-                <p class="untertitel">
-                    Ideen und wichtige Informationen sammeln.
-                </p>
+                <p class="untertitel">Ideen und wichtige Informationen sammeln.</p>
             </div>
             <button id="neueNotizButton">+ Neue Notiz</button>
         </div>
 
         <div class="leerzustand">
             <h3>Euer Notizbereich</h3>
-            <p>
-                Die gemeinsame Notizfunktion ist noch nicht eingerichtet.
-                Eure Notizen werden hier noch nicht gespeichert.
-            </p>
+            <p>Die gemeinsame Notizfunktion ist noch nicht eingerichtet. Eure Notizen werden hier noch nicht gespeichert.</p>
         </div>
     `;
 
@@ -333,12 +352,5 @@ function zeigeNotizen() {
 }
 
 function neueNotiz() {
-    alert(
-        "Die Notizfunktion ist noch nicht eingerichtet. " +
-        "Wir können sie als nächsten Schritt ergänzen."
-    );
+    alert("Die Notizfunktion ist noch nicht eingerichtet.");
 }
-
-// Beim Öffnen der Webseite zunächst die Startseite anzeigen.
-// Die vorhandenen Navigationsbuttons rufen zeigeGlossar()
-// und zeigeNotizen() weiterhin direkt auf.

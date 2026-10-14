@@ -1,24 +1,25 @@
-
 const API_URL = "https://script.google.com/macros/s/AKfycbybsJKxWfUbeysLy2QdTTE4MT45PWjWnwMLx_yQaVslSt7J2Z4NXBw-fNvkXXnCgAog/exec";
 
 let alleBegriffe = [];
 let suchbegriffAktuell = "";
 
+/* ---------- Navigation: aktiven Bereich markieren ---------- */
+
+function setzeAktivenBereich(bereich) {
     const app = document.getElementById("app");
-setzeAktivenBereich("glossar");
     app.classList.remove("bereich-glossar", "bereich-notizen");
     app.classList.add(
         bereich === "notizen" ? "bereich-notizen" : "bereich-glossar"
     );
 
-    document.querySelectorAll("header nav button").forEach(button => {
+    const buttons = document.querySelectorAll("header nav button");
+
+    buttons.forEach(button => {
         button.classList.remove("aktiv-glossar", "aktiv-notizen");
         button.removeAttribute("aria-current");
     });
 
-    const buttons = document.querySelectorAll("header nav button");
-    const index = bereich === "notizen" ? 1 : 0;
-    const aktiv = buttons[index];
+    const aktiv = buttons[bereich === "notizen" ? 1 : 0];
 
     if (aktiv) {
         aktiv.classList.add(
@@ -28,6 +29,10 @@ setzeAktivenBereich("glossar");
     }
 }
 
+/* ---------- API ---------- */
+
+// Mit no-cors kann die Antwort nicht gelesen werden.
+// Deshalb lädt die Seite danach die Liste neu und prüft das Ergebnis.
 async function apiAnfrage(daten) {
     await fetch(API_URL, {
         method: "POST",
@@ -39,19 +44,23 @@ async function apiAnfrage(daten) {
     });
 }
 
+/* ---------- Glossar ---------- */
+
 async function zeigeGlossar(optionen = {}) {
+    setzeAktivenBereich("glossar");
+
     const app = document.getElementById("app");
 
     app.innerHTML = `
         <div class="seitenkopf">
             <div>
                 <p class="seitenlabel">WISSEN & LEXIKON</p>
-                <h2> TeamGlossar</h2>
+                <h2>TeamGlossar</h2>
                 <p class="untertitel">
                     Fachbegriffe einfach finden und verstehen.
                 </p>
             </div>
-            <button id="neuerBegriffButton">+ Neuer Begriff</button>
+            <button id="neuerBegriffButton" type="button">+ Neuer Begriff</button>
         </div>
 
         <div class="suchbereich">
@@ -86,16 +95,20 @@ async function zeigeGlossar(optionen = {}) {
         const suchtext = suche.value.trim().toLocaleLowerCase("de");
         suchbegriffAktuell = suche.value;
 
-        const gefiltert = alleBegriffe.filter(begriff => {
-            const text = [
-                begriff.term,
-                begriff.definition,
-                begriff.category,
-                begriff.author
-            ].filter(Boolean).join(" ").toLocaleLowerCase("de");
+        const gefiltert = alleBegriffe
+            .filter(begriff => {
+                const text = [
+                    begriff.term,
+                    begriff.definition,
+                    begriff.category,
+                    begriff.author
+                ].filter(Boolean).join(" ").toLocaleLowerCase("de");
 
-            return text.includes(suchtext);
-        });
+                return text.includes(suchtext);
+            })
+            .sort((a, b) =>
+                String(a.term || "").localeCompare(String(b.term || ""), "de")
+            );
 
         liste.replaceChildren();
         trefferInfo.textContent =
@@ -169,6 +182,8 @@ async function zeigeGlossar(optionen = {}) {
         });
     }
 
+    suche.addEventListener("input", renderBegriffe);
+
     try {
         const antwort = await fetch(API_URL);
 
@@ -212,7 +227,8 @@ async function zeigeGlossar(optionen = {}) {
     }
 }
 
-// Formular zum Anlegen oder Bearbeiten öffnen
+/* ---------- Formular: anlegen oder bearbeiten ---------- */
+
 function begriffFormularAnzeigen(begriff = null) {
     const liste = document.getElementById("glossarListe");
     const istBearbeitung = Boolean(begriff);
@@ -241,7 +257,9 @@ function begriffFormularAnzeigen(begriff = null) {
                     placeholder="Dein Name (optional)">
 
                 <div class="formularaktionen">
-                    <button type="submit" id="speichernButton">Änderungen speichern</button>
+                    <button type="submit" id="speichernButton">
+                        ${istBearbeitung ? "Änderungen speichern" : "Begriff speichern"}
+                    </button>
                     <button type="button" id="abbrechenButton">Abbrechen</button>
                 </div>
             </form>
@@ -257,8 +275,6 @@ function begriffFormularAnzeigen(begriff = null) {
         formular.elements.category.value = begriff.category || "";
         formular.elements.definition.value = begriff.definition || "";
         formular.elements.author.value = begriff.author || "";
-    } else {
-        formular.elements.author.value = "";
     }
 
     document.getElementById("abbrechenButton")
@@ -301,8 +317,7 @@ function begriffFormularAnzeigen(begriff = null) {
                 neuerTerm: istBearbeitung ? null : daten.term
             });
         } catch (fehler) {
-            status.textContent =
-                "Fehler beim Senden: " + fehler.message;
+            status.textContent = "Fehler beim Senden: " + fehler.message;
             button.disabled = false;
         }
     });
@@ -353,18 +368,22 @@ async function loeschenBegriff(begriff) {
     }
 }
 
-// Notizen – noch ohne Speicherung
-function zeigeNotizen() {setzeAktivenBereich("notizen");
+/* ---------- Notizen (noch ohne Speicherung) ---------- */
+
+function zeigeNotizen() {
+    setzeAktivenBereich("notizen");
 
     document.getElementById("app").innerHTML = `
         <div class="seitenkopf">
             <div>
                 <p class="seitenlabel">TEAM & ZUSAMMENARBEIT</p>
-                <h2> Notizen</h2>
+                <h2>Notizen</h2>
                 <p class="untertitel">Ideen und wichtige Informationen sammeln.</p>
             </div>
-            <button id="neueNotizButton">+ Neue Notiz</button>
+            <button id="neueNotizButton" type="button">+ Neue Notiz</button>
         </div>
+
+        <p id="notizStatus" class="hinweis" role="status" aria-live="polite"></p>
 
         <div class="leerzustand">
             <h3>Euer Notizbereich</h3>
@@ -377,5 +396,14 @@ function zeigeNotizen() {setzeAktivenBereich("notizen");
 }
 
 function neueNotiz() {
-    alert("Die Notizfunktion ist noch nicht eingerichtet.");
+    const status = document.getElementById("notizStatus");
+
+    if (status) {
+        status.textContent =
+            "Die Notizfunktion ist noch nicht eingerichtet. Sie wird als Nächstes ergänzt.";
+    }
 }
+
+/* ---------- Start ---------- */
+
+zeigeGlossar();

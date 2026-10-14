@@ -55,7 +55,7 @@ async function zeigeGlossar(optionen = {}) {
         <div class="seitenkopf">
             <div>
                 <p class="seitenlabel">WISSEN & LEXIKON</p>
-                <h2>TeamGlossar</h2>
+                <h2>Glossar</h2>
                 <p class="untertitel">
                     Fachbegriffe einfach finden und verstehen.
                 </p>
@@ -126,7 +126,7 @@ async function zeigeGlossar(optionen = {}) {
             const text = document.createElement("p");
             text.textContent = suchtext
                 ? "Versuche einen anderen Suchbegriff."
-                : "Füge den ersten Begriff zu eurem TeamGlossar hinzu.";
+                : "Füge den ersten Begriff zu eurem Glossar hinzu.";
 
             leer.append(titel, text);
             liste.appendChild(leer);

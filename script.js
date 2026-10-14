@@ -368,9 +368,11 @@ async function loeschenBegriff(begriff) {
     }
 }
 
-/* ---------- Notizen (noch ohne Speicherung) ---------- */
+/* ---------- Notizen ---------- */
 
-function zeigeNotizen() {
+let alleNotizen = [];
+
+async function zeigeNotizen(optionen = {}) {
     setzeAktivenBereich("notizen");
 
     document.getElementById("app").innerHTML = `
@@ -385,25 +387,210 @@ function zeigeNotizen() {
 
         <p id="notizStatus" class="hinweis" role="status" aria-live="polite"></p>
 
-        <div class="leerzustand">
-            <h3>Euer Notizbereich</h3>
-            <p>Die gemeinsame Notizfunktion ist noch nicht eingerichtet. Eure Notizen werden hier noch nicht gespeichert.</p>
+        <div class="liste" id="notizListe" aria-live="polite">
+            <p>Notizen werden geladen ...</p>
         </div>
     `;
 
     document.getElementById("neueNotizButton")
         .addEventListener("click", neueNotiz);
+
+    const liste = document.getElementById("notizListe");
+    const status = document.getElementById("notizStatus");
+
+    try {
+        const antwort = await fetch(API_URL + "?bereich=notizen");
+
+        if (!antwort.ok) {
+            throw new Error("HTTP " + antwort.status);
+        }
+
+        const daten = await antwort.json();
+
+        if (!Array.isArray(daten)) {
+            throw new Error("Die API hat keine Notizliste geliefert.");
+        }
+
+        alleNotizen = daten;
+        liste.replaceChildren();
+
+        if (optionen.status) {
+            status.textContent = optionen.status;
+        }
+
+        if (alleNotizen.length === 0) {
+            const leer = document.createElement("div");
+            leer.className = "leerzustand";
+            const titel = document.createElement("h3");
+            titel.textContent = "Noch keine Notizen vorhanden";
+            const text = document.createElement("p");
+            text.textContent = "Lege die erste Notiz für euer Team an.";
+            leer.append(titel, text);
+            liste.appendChild(leer);
+            return;
+        }
+
+        alleNotizen.forEach(notiz => {
+            const karte = document.createElement("article");
+            karte.className = "begriffkarte";
+
+            const titel = document.createElement("h3");
+            titel.textContent = notiz.title || "Ohne Titel";
+
+            const text = document.createElement("p");
+            text.className = "begriffdefinition";
+            text.style.whiteSpace = "pre-wrap";
+            text.textContent = notiz.text || "";
+
+            karte.append(titel, text);
+
+            if (notiz.author) {
+                const autor = document.createElement("p");
+                autor.className = "hinweis";
+                autor.textContent = "Eingetragen von: " + notiz.author;
+                karte.appendChild(autor);
+            }
+
+            const aktionen = document.createElement("div");
+            aktionen.className = "begriff-aktionen";
+
+            const bearbeiten = document.createElement("button");
+            bearbeiten.type = "button";
+            bearbeiten.className = "bearbeiten-button";
+            bearbeiten.textContent = "✏️ Bearbeiten";
+            bearbeiten.addEventListener("click", () => notizFormularAnzeigen(notiz));
+
+            const loeschen = document.createElement("button");
+            loeschen.type = "button";
+            loeschen.className = "loeschen-button";
+            loeschen.textContent = "🗑️ Löschen";
+            loeschen.addEventListener("click", () => loeschenNotiz(notiz));
+
+            aktionen.append(bearbeiten, loeschen);
+            karte.appendChild(aktionen);
+            liste.appendChild(karte);
+        });
+    } catch (fehler) {
+        liste.replaceChildren();
+        const meldung = document.createElement("p");
+        meldung.className = "fehlermeldung";
+        meldung.textContent =
+            "Notizen konnten nicht geladen werden: " + fehler.message;
+        liste.appendChild(meldung);
+    }
+}
+
+function notizFormularAnzeigen(notiz = null) {
+    const liste = document.getElementById("notizListe");
+    const istBearbeitung = Boolean(notiz);
+
+    liste.innerHTML = `
+        <div class="formularbereich">
+            <h3>${istBearbeitung ? "Notiz bearbeiten" : "Neue Notiz hinzufügen"}</h3>
+
+            <form id="notizFormular">
+                <label for="notizTitel">Titel *</label>
+                <input id="notizTitel" name="title" required maxlength="200"
+                    placeholder="z. B. Ideen für das Projekttreffen">
+
+                <label for="notizText">Notiz *</label>
+                <textarea id="notizText" name="text" required
+                    maxlength="5000" rows="6"
+                    placeholder="Was soll das Team wissen?"></textarea>
+
+                <label for="notizAutor">Autor</label>
+                <input id="notizAutor" name="author" maxlength="100"
+                    placeholder="Dein Name (optional)">
+
+                <div class="formularaktionen">
+                    <button type="submit" id="notizSpeichern">
+                        ${istBearbeitung ? "Änderungen speichern" : "Notiz speichern"}
+                    </button>
+                    <button type="button" id="notizAbbrechen">Abbrechen</button>
+                </div>
+            </form>
+
+            <p id="notizSpeicherStatus" role="status" aria-live="polite"></p>
+        </div>
+    `;
+
+    const formular = document.getElementById("notizFormular");
+
+    if (notiz) {
+        formular.elements.title.value = notiz.title || "";
+        formular.elements.text.value = notiz.text || "";
+        formular.elements.author.value = notiz.author || "";
+    }
+
+    document.getElementById("notizAbbrechen")
+        .addEventListener("click", () => zeigeNotizen());
+
+    formular.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const status = document.getElementById("notizSpeicherStatus");
+        const button = document.getElementById("notizSpeichern");
+
+        const daten = {
+            bereich: "notizen",
+            action: istBearbeitung ? "update" : "create",
+            title: formular.elements.title.value.trim(),
+            text: formular.elements.text.value.trim(),
+            author: formular.elements.author.value.trim()
+        };
+
+        if (istBearbeitung) {
+            daten.id = notiz.id;
+        }
+
+        if (!daten.title || !daten.text) {
+            status.textContent = "Bitte Titel und Notiz ausfüllen.";
+            return;
+        }
+
+        button.disabled = true;
+        status.textContent = "Speichervorgang wird ausgeführt ...";
+
+        try {
+            await apiAnfrage(daten);
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            await zeigeNotizen({ status: "Notiz gesendet. Sie sollte jetzt in der Liste stehen." });
+        } catch (fehler) {
+            status.textContent = "Fehler beim Senden: " + fehler.message;
+            button.disabled = false;
+        }
+    });
 }
 
 function neueNotiz() {
-    const status = document.getElementById("notizStatus");
+    notizFormularAnzeigen();
+}
 
-    if (status) {
-        status.textContent =
-            "Die Notizfunktion ist noch nicht eingerichtet. Sie wird als Nächstes ergänzt.";
+async function loeschenNotiz(notiz) {
+    if (!notiz.id) {
+        alert("Diese Notiz hat keine ID und kann nicht gelöscht werden.");
+        return;
+    }
+
+    const bestaetigt = confirm(
+        `Möchtest du die Notiz „${notiz.title}“ wirklich löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.`
+    );
+
+    if (!bestaetigt) return;
+
+    const status = document.getElementById("notizStatus");
+    status.textContent = "Löschanfrage wird gesendet ...";
+
+    try {
+        await apiAnfrage({ bereich: "notizen", action: "delete", id: notiz.id });
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        await zeigeNotizen({ status: `Notiz „${notiz.title}“ wurde gelöscht.` });
+    } catch (fehler) {
+        status.textContent = "Fehler beim Löschen: " + fehler.message;
     }
 }
 
 /* ---------- Start ---------- */
 
 zeigeGlossar();
+

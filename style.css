@@ -939,6 +939,9 @@ html[data-theme="dark"] .theme-button {
     border-color: var(--rand);
     color: var(--text);
 }
+
+/* Glossar-Button grün, solange der Bereich Notizen offen ist */
+
 header nav button:first-child:not(.aktiv-glossar):not(.aktiv-notizen) {
     background: var(--notizen-farbe);
     color: #ffffff;
@@ -947,4 +950,37 @@ header nav button:first-child:not(.aktiv-glossar):not(.aktiv-notizen) {
 header nav button:first-child:not(.aktiv-glossar):not(.aktiv-notizen):hover {
     background: var(--notizen-farbe);
     filter: brightness(0.9);
+}
+
+/* =====================================
+   Konto: Anmelde-Leiste und Buttons
+   ===================================== */
+
+.konto-leiste {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    color: var(--text-leise);
+    font-size: 13px;
+}
+
+.konto-leiste button,
+.sekundaer-button {
+    padding: 6px 12px;
+    background: transparent;
+    border-color: var(--rand);
+    color: var(--text);
+    font-size: 12px;
+}
+
+.sekundaer-button {
+    padding: 10px 16px;
+    font-size: 14px;
+}
+
+.konto-leiste button:hover,
+.sekundaer-button:hover {
+    background: var(--hintergrund);
 }

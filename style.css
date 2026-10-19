@@ -1,799 +1,141 @@
-* {
-    box-sizing: border-box;
-}
-
-:root {
-    --primary: #3157a4;
-    --primary-hover: #254685;
-    --header: #1e2a44;
-    --background: #f4f6fb;
-    --surface: #ffffff;
-    --text: #202b3c;
-    --muted: #68758a;
-    --border: #e2e7f0;
-    --shadow: 0 8px 28px rgba(30, 42, 68, 0.07);
-}
-
-body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: var(--background);
-    color: var(--text);
-    line-height: 1.6;
-}
-
-/* Kopfbereich */
-
-header {
-    background: var(--header);
-    color: white;
-    text-align: center;
-    padding: 38px 20px 30px;
-}
-
-header h1 {
-    margin: 0;
-    font-size: clamp(28px, 4vw, 38px);
-    letter-spacing: -0.8px;
-}
-
-header p {
-    margin: 8px 0 0;
-    color: #cbd5e5;
-    font-size: 16px;
-}
-
-/* Navigation */
-
-nav {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 26px;
-}
-
-button {
-    border: 1px solid transparent;
-    background: var(--primary);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-button:hover {
-    background: var(--primary-hover);
-}
-
-button:active {
-    transform: translateY(1px);
-}
-
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-    outline: 3px solid #a9c2ff;
-    outline-offset: 3px;
-}
-
-/* Hauptbereich */
-
-main {
-    width: min(100% - 32px, 1000px);
-    margin: 36px auto;
-    padding: clamp(20px, 4vw, 36px);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    box-shadow: var(--shadow);
-    min-height: 240px;
-}
-
-/* Willkommen */
-
-.willkommen {
-    text-align: center;
-    padding: 28px 10px;
-}
-
-.willkommen h2 {
-    margin-top: 0;
-    font-size: clamp(25px, 3vw, 32px);
-}
-
-.willkommen p {
-    color: var(--muted);
-    max-width: 560px;
-    margin: 12px auto;
-}
-
-/* Überschriften */
-
-h2 {
-    color: var(--header);
-    line-height: 1.3;
-}
-
-h3 {
-    color: var(--text);
-    line-height: 1.4;
-}
-
-/* Formulare und Suche */
-
-input,
-textarea,
-select {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: white;
-    color: var(--text);
-    font: inherit;
-}
-
-textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-input::placeholder,
-textarea::placeholder {
-    color: #8994a7;
-}
-
-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-}
-
-/* Inhalte und Begriffskarten */
-
-section {
-    margin-bottom: 20px;
-}
-
-article {
-    padding: 18px;
-    margin: 14px 0;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow-wrap: anywhere;
-}
-
-article h3 {
-    margin-top: 0;
-}
-
-article p {
-    color: #526078;
-}
-
-/* Links */
-
-a {
-    color: var(--primary);
-}
-
-/* Mobile Ansicht */
-
-@media (max-width: 600px) {
-    header {
-        padding: 28px 16px 24px;
-    }
-
-    nav {
-        gap: 8px;
-    }
-
-    nav button {
-        flex: 1;
-        padding: 11px 12px;
-        margin: 0;
-    }
-
-    main {
-        width: calc(100% - 20px);
-        margin: 18px auto;
-        padding: 20px 16px;
-        border-radius: 14px;
-    }
-
-    .willkommen {
-        padding: 16px 0;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition: none !important;
-    }
-}
-
-.begriff-aktionen {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 18px;
-}
-
-.begriff-aktionen button {
-    width: auto;
-    margin: 0;
-}
-
-.bearbeiten-button {
-    background: #e8efff;
-    color: #2349a5;
-}
-
-.bearbeiten-button:hover {
-    background: #d8e4ff;
-}
-
-.loeschen-button {
-    background: #fff0f0;
-    color: #b42318;
-}
-
-.loeschen-button:hover {
-    background: #ffe0e0;
-}
-
-.formularaktionen {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 18px;
-}
-
-.formularaktionen button {
-    width: auto;
-    margin: 0;
-}
-
-button:disabled {
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.speicher-erfolg {
-    color: #18794e;
-    font-weight: 600;
-}
-
 /* =====================================
-   TeamGlossar – Clean Design
+   Hell/Dunkel-Modus
    ===================================== */
 
-:root {
-    --hintergrund: #f6f7f9;
-    --oberflaeche: #ffffff;
-    --text: #202733;
-    --text-leise: #697586;
-    --akzent: #3659c9;
-    --akzent-hover: #2847ac;
-    --rand: #e5e8ee;
-    --fehler: #b42318;
-    --radius: 14px;
-    --schatten: 0 3px 14px rgba(25, 35, 55, 0.045);
-}
-
-* {
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
+/* Button zum Umschalten */
 
 body {
-    margin: 0;
+    position: relative;
+}
+
+.theme-button {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 10;
+    padding: 8px 12px;
+    background: var(--oberflaeche);
+    border-color: var(--rand);
+    color: var(--text);
+    font-size: 13px;
+}
+
+.theme-button:hover {
     background: var(--hintergrund);
-    color: var(--text);
-    font-family: Inter, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", sans-serif;
-    font-size: 15px;
-    line-height: 1.65;
 }
 
-/* Kopfbereich */
+/* Dunkle Farben über die Variablen */
 
-header {
+html[data-theme="dark"] {
+    color-scheme: dark;
+
+    --hintergrund: #12151c;
+    --oberflaeche: #1a1e27;
+    --text: #e6e8ee;
+    --text-leise: #a3abbb;
+    --rand: #2b3140;
+    --header: #e6e8ee;
+    --akzent: #4a6fe0;
+    --akzent-hover: #3b5cc4;
+    --fehler: #ff8a80;
+    --schatten: 0 3px 14px rgba(0, 0, 0, 0.35);
+
+    --glossar-farbe: #5577e6;
+    --glossar-hell: #1f2a4a;
+    --notizen-farbe: #1b8f7e;
+    --notizen-hell: #16332d;
+}
+
+/* Stellen mit festen Farben */
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea {
+    background: #12151c;
+    border-color: #343b4d;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: #7f899c;
+}
+
+html[data-theme="dark"] article,
+html[data-theme="dark"] .begriffkarte {
     background: var(--oberflaeche);
-    color: var(--text);
-    padding: 22px 7%;
-    border-bottom: 1px solid var(--rand);
 }
 
-header h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 750;
-    letter-spacing: -0.8px;
+html[data-theme="dark"] .begriffkarte:hover {
+    border-color: #3a4358;
 }
 
-header p {
-    margin: 3px 0 16px;
-    color: var(--text-leise);
-    font-size: 14px;
+html[data-theme="dark"] article p,
+html[data-theme="dark"] .begriffdefinition {
+    color: #c5cad6;
 }
 
-header nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+html[data-theme="dark"] .kategorietag {
+    background: #1f2a4a;
+    border-color: #2c3b66;
+    color: #a9bcff;
 }
 
-/* Einheitliche Buttons */
+html[data-theme="dark"] .begriff-aktionen {
+    border-top-color: var(--rand);
+}
 
-button {
-    width: auto;
-    margin: 0;
-    padding: 10px 16px;
-    border: 1px solid transparent;
-    border-radius: 9px;
-    background: var(--akzent);
+html[data-theme="dark"] .bearbeiten-button {
+    background: #232a3a;
+    border-color: #343b4d;
+    color: #d5dbea;
+}
+
+html[data-theme="dark"] .bearbeiten-button:hover {
+    background: #2c3447;
     color: #ffffff;
-    font: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.18s ease,
-        border-color 0.18s ease,
-        transform 0.18s ease;
 }
 
-button:hover {
-    background: var(--akzent-hover);
-}
-
-button:active {
-    transform: translateY(1px);
-}
-
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-    outline: 3px solid rgba(54, 89, 201, 0.2);
-    outline-offset: 2px;
-}
-
-/* Hauptbereich */
-
-main#app {
-    width: min(1080px, 92%);
-    min-height: 65vh;
-    margin: 36px auto 64px;
-    padding: 0;
+html[data-theme="dark"] .loeschen-button {
     background: transparent;
-    box-shadow: none;
-    border: 0;
-}
-
-#app h2 {
-    margin: 0;
-    font-size: clamp(26px, 3vw, 34px);
-    line-height: 1.25;
-    letter-spacing: -1px;
-    font-weight: 750;
-}
-
-#app h3 {
-    color: var(--text);
-    font-size: 18px;
-    line-height: 1.4;
-    letter-spacing: -0.25px;
-}
-
-/* Seitenkopf */
-
-.seitenkopf {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 30px;
-}
-
-.seitenlabel {
-    margin: 0 0 7px;
-    color: var(--akzent);
-    font-size: 11px;
-    font-weight: 750;
-    letter-spacing: 1.4px;
-}
-
-.untertitel {
-    margin: 8px 0 0;
-    color: var(--text-leise);
-    font-size: 15px;
-}
-
-/* Suche */
-
-.suchbereich {
-    margin-bottom: 24px;
-    padding: 20px;
-    background: var(--oberflaeche);
-    border: 1px solid var(--rand);
-    border-radius: var(--radius);
-}
-
-.suchbereich label,
-.formularbereich label {
-    display: block;
-    margin-bottom: 7px;
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 650;
-}
-
-input,
-textarea {
-    display: block;
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #d9dee7;
-    border-radius: 9px;
-    background: #ffffff;
-    color: var(--text);
-    font: inherit;
-    font-size: 14px;
-    transition: border-color 0.2s ease;
-}
-
-input:focus,
-textarea:focus {
-    border-color: var(--akzent);
-    outline: none;
-}
-
-textarea {
-    min-height: 130px;
-    resize: vertical;
-}
-
-.hinweis {
-    color: var(--text-leise);
-    font-size: 13px;
-}
-
-.suchbereich .hinweis {
-    margin: 10px 0 0;
-}
-
-/* Begriffskarten */
-
-.liste {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
-}
-
-.begriffkarte {
-    min-width: 0;
-    padding: 24px;
-    background: var(--oberflaeche);
-    border: 1px solid var(--rand);
-    border-radius: var(--radius);
-    box-shadow: var(--schatten);
-    transition: border-color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.begriffkarte:hover {
-    border-color: #ccd5e8;
-    box-shadow: 0 7px 22px rgba(25, 35, 55, 0.07);
-}
-
-.begriffkarte h3 {
-    margin: 0 0 12px;
-    overflow-wrap: anywhere;
-}
-
-.begriffdefinition {
-    margin: 16px 0;
-    color: #424d5d;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-/* Kategorie */
-
-.kategorietag {
-    display: inline-block;
-    padding: 4px 9px;
-    border: 1px solid #dce5ff;
-    border-radius: 6px;
-    background: #f1f5ff;
-    color: #3652a3;
-    font-size: 11px;
-    font-weight: 650;
-}
-
-/* Aktionen auf Begriffskarten */
-
-.begriff-aktionen {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid #eef0f4;
-}
-
-.begriff-aktionen button {
-    padding: 8px 11px;
-    font-size: 12px;
-}
-
-.bearbeiten-button {
-    background: #f0f3fa;
-    border-color: #e2e7f0;
-    color: #34415a;
-}
-
-.bearbeiten-button:hover {
-    background: #e3e9f5;
-    color: #25334b;
-}
-
-.loeschen-button {
-    background: #ffffff;
-    border-color: #f0d7d5;
+    border-color: #5a2f2c;
     color: var(--fehler);
 }
 
-.loeschen-button:hover {
-    background: #fff1f0;
-    color: #912018;
+html[data-theme="dark"] .loeschen-button:hover {
+    background: #2a1a1a;
+    color: #ffb4ab;
 }
 
-/* Formulare */
-
-.formularbereich {
-    grid-column: 1 / -1;
-    max-width: 720px;
-    width: 100%;
-    margin: 0 auto;
-    padding: clamp(22px, 4vw, 36px);
-    background: var(--oberflaeche);
-    border: 1px solid var(--rand);
-    border-radius: var(--radius);
-    box-shadow: var(--schatten);
-}
-
-.formularbereich h3 {
-    margin-top: 0;
-}
-
-.formularbereich form {
-    margin-top: 24px;
-}
-
-.formularbereich input,
-.formularbereich textarea {
-    margin-bottom: 18px;
-}
-
-.formularaktionen {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 8px;
-}
-
-.formularaktionen button {
-    width: auto;
-}
-
-#abbrechenButton {
-    background: #ffffff;
+html[data-theme="dark"] #abbrechenButton {
+    background: transparent;
     border-color: var(--rand);
     color: var(--text);
 }
 
-#abbrechenButton:hover {
-    background: #f1f3f7;
+html[data-theme="dark"] #abbrechenButton:hover {
+    background: #232a3a;
 }
 
-#speicherStatus,
-#glossarStatus {
-    overflow-wrap: anywhere;
+html[data-theme="dark"] header nav button.aktiv-glossar {
+    border-color: #2c3b66;
+    color: #a9bcff;
 }
 
-/* Leere Zustände und Fehler */
+html[data-theme="dark"] header nav button.aktiv-notizen {
+    border-color: #1f4a41;
+    color: #6fe0c9;
+}
 
-.leerzustand {
-    grid-column: 1 / -1;
-    padding: 44px 24px;
+html[data-theme="dark"] .leerzustand {
+    border-color: #343b4d;
+}
+
+html[data-theme="dark"] .fehlermeldung {
+    background: #2a1a1a;
+    border-color: #5a2f2c;
+}
+
+html[data-theme="dark"] .theme-button {
     background: var(--oberflaeche);
-    border: 1px dashed #d4dae5;
-    border-radius: var(--radius);
-    text-align: center;
-}
-
-.leerzustand h3 {
-    margin: 0 0 8px;
-}
-
-.leerzustand p {
-    margin: 0;
-    color: var(--text-leise);
-}
-
-.fehlermeldung {
-    grid-column: 1 / -1;
-    padding: 18px;
-    border: 1px solid #f0d7d5;
-    border-radius: 10px;
-    background: #fff5f4;
-    color: var(--fehler);
-}
-
-/* Startseite, falls vorhanden */
-
-.willkommen {
-    padding: clamp(28px, 6vw, 56px);
-    background: var(--oberflaeche);
-    border: 1px solid var(--rand);
-    border-radius: 18px;
-    box-shadow: var(--schatten);
-}
-
-.willkommen h2 {
-    margin-bottom: 14px;
-}
-
-.willkommen p {
-    color: var(--text-leise);
-}
-
-/* Mobilgeräte */
-
-@media (max-width: 700px) {
-    header {
-        padding: 20px 5%;
-    }
-
-    header h1 {
-        font-size: 22px;
-    }
-
-    main#app {
-        width: 92%;
-        margin-top: 26px;
-    }
-
-    .seitenkopf {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .seitenkopf > button {
-        width: 100%;
-    }
-
-    .liste {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .begriffkarte {
-        padding: 20px;
-    }
-
-    .suchbereich {
-        padding: 16px;
-    }
-
-    .formularbereich {
-        padding: 22px 18px;
-    }
-
-    .formularaktionen {
-        flex-direction: column;
-    }
-
-    .formularaktionen button {
-        width: 100%;
-    }
-
-    .begriff-aktionen button {
-        flex: 1;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition: none !important;
-    }
-}
-
-/* Bereichsfarben: Glossar und Notizen */
-
-:root {
-    --glossar-farbe: #3659c9;
-    --glossar-hell: #edf2ff;
-    --notizen-farbe: #147d70;
-    --notizen-hell: #e8f6f2;
-}
-
-/* Aktiver Navigationsbereich */
-
-header nav button.aktiv-glossar {
-    background: var(--glossar-hell);
-    border-color: #d5e0ff;
-    color: var(--glossar-farbe);
-}
-
-header nav button.aktiv-notizen {
-    background: var(--notizen-hell);
-    border-color: #c8e9df;
-    color: var(--notizen-farbe);
-}
-
-/* Akzent im Seitenkopf */
-
-#app.bereich-glossar {
-    --bereich-farbe: var(--glossar-farbe);
-    --bereich-hell: var(--glossar-hell);
-}
-
-#app.bereich-notizen {
-    --bereich-farbe: var(--notizen-farbe);
-    --bereich-hell: var(--notizen-hell);
-}
-
-#app.bereich-glossar .seitenlabel,
-#app.bereich-notizen .seitenlabel {
-    color: var(--bereich-farbe);
-}
-
-#app.bereich-glossar .seitenkopf > button,
-#app.bereich-notizen .seitenkopf > button {
-    background: var(--bereich-farbe);
-}
-
-#app.bereich-glossar .seitenkopf > button:hover,
-#app.bereich-notizen .seitenkopf > button:hover {
-    filter: brightness(0.9);
-}
-
-/* Suchfeld und Formulare erhalten den passenden Fokus */
-
-#app.bereich-glossar input:focus,
-#app.bereich-glossar textarea:focus {
-    border-color: var(--glossar-farbe);
-}
-
-#app.bereich-notizen input:focus,
-#app.bereich-notizen textarea:focus {
-    border-color: var(--notizen-farbe);
-}
-
-/* Dezenter Farbstreifen auf den Karten */
-
-#app.bereich-glossar .begriffkarte {
-    border-top: 3px solid var(--glossar-farbe);
-}
-
-#app.bereich-notizen .notizkarte {
-    border-top: 3px solid var(--notizen-farbe);
+    border-color: var(--rand);
+    color: var(--text);
 }

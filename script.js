@@ -31,17 +31,36 @@ function setzeAktivenBereich(bereich) {
 
 /* ---------- API ---------- */
 
-// Mit no-cors kann die Antwort nicht gelesen werden.
-// Deshalb lädt die Seite danach die Liste neu und prüft das Ergebnis.
+// Sendet eine Anfrage an das Backend und liest die Antwort.
+// Ist jemand angemeldet, wird der Token automatisch mitgeschickt.
 async function apiAnfrage(daten) {
-    await fetch(API_URL, {
+    const sitzung = ladeSitzung();
+
+    if (sitzung) {
+        daten.token = sitzung.token;
+    }
+
+    const antwort = await fetch(API_URL, {
         method: "POST",
-        mode: "no-cors",
         headers: {
             "Content-Type": "text/plain;charset=utf-8"
         },
         body: JSON.stringify(daten)
     });
+
+    const ergebnis = await antwort.json();
+
+    if (!ergebnis.success) {
+        if (ergebnis.login) {
+            loescheSitzung();
+            aktualisiereKonto();
+            throw new Error("Bitte melde dich erneut an.");
+        }
+
+        throw new Error(ergebnis.error || "Unbekannter Fehler");
+    }
+
+    return ergebnis;
 }
 
 /* ---------- Glossar ---------- */
@@ -252,9 +271,7 @@ function begriffFormularAnzeigen(begriff = null) {
                     maxlength="5000" rows="5"
                     placeholder="Erkläre den Begriff ..."></textarea>
 
-                <label for="author">Autor</label>
-                <input id="author" name="author" maxlength="100"
-                    placeholder="Dein Name (optional)">
+                <p class="hinweis">Der Autor wird automatisch aus deinem Konto eingetragen.</p>
 
                 <div class="formularaktionen">
                     <button type="submit" id="speichernButton">
@@ -274,7 +291,6 @@ function begriffFormularAnzeigen(begriff = null) {
         formular.elements.term.value = begriff.term || "";
         formular.elements.category.value = begriff.category || "";
         formular.elements.definition.value = begriff.definition || "";
-        formular.elements.author.value = begriff.author || "";
     }
 
     document.getElementById("abbrechenButton")
@@ -290,8 +306,7 @@ function begriffFormularAnzeigen(begriff = null) {
             action: istBearbeitung ? "update" : "create",
             term: formular.elements.term.value.trim(),
             category: formular.elements.category.value.trim(),
-            definition: formular.elements.definition.value.trim(),
-            author: formular.elements.author.value.trim()
+            definition: formular.elements.definition.value.trim()
         };
 
         if (istBearbeitung) {
@@ -324,10 +339,14 @@ function begriffFormularAnzeigen(begriff = null) {
 }
 
 function neuerBegriff() {
+    if (!benoetigtLogin(() => zeigeGlossar().then(() => begriffFormularAnzeigen()))) return;
+
     begriffFormularAnzeigen();
 }
 
 function bearbeitenBegriff(begriff) {
+    if (!benoetigtLogin(() => zeigeGlossar())) return;
+
     if (!begriff.id) {
         alert("Dieser Eintrag hat keine ID und kann nicht bearbeitet werden.");
         return;
@@ -337,6 +356,8 @@ function bearbeitenBegriff(begriff) {
 }
 
 async function loeschenBegriff(begriff) {
+    if (!benoetigtLogin(() => zeigeGlossar())) return;
+
     if (!begriff.id) {
         alert("Dieser Eintrag hat keine ID und kann nicht gelöscht werden.");
         return;
@@ -473,7 +494,7 @@ async function zeigeNotizen(optionen = {}) {
             bearbeiten.type = "button";
             bearbeiten.className = "bearbeiten-button";
             bearbeiten.textContent = "✏️ Bearbeiten";
-            bearbeiten.addEventListener("click", () => notizFormularAnzeigen(notiz));
+            bearbeiten.addEventListener("click", () => bearbeitenNotiz(notiz));
 
             const loeschen = document.createElement("button");
             loeschen.type = "button";
@@ -537,9 +558,7 @@ function notizFormularAnzeigen(notiz = null) {
                     maxlength="5000" rows="6"
                     placeholder="Was soll das Team wissen?"></textarea>
 
-                <label for="notizAutor">Autor</label>
-                <input id="notizAutor" name="author" maxlength="100"
-                    placeholder="Dein Name (optional)">
+                <p class="hinweis">Der Autor wird automatisch aus deinem Konto eingetragen.</p>
 
                 <div class="formularaktionen">
                     <button type="submit" id="notizSpeichern">
@@ -558,7 +577,6 @@ function notizFormularAnzeigen(notiz = null) {
     if (notiz) {
         formular.elements.title.value = notiz.title || "";
         formular.elements.text.value = notiz.text || "";
-        formular.elements.author.value = notiz.author || "";
     }
 
     document.getElementById("notizAbbrechen")
@@ -574,8 +592,7 @@ function notizFormularAnzeigen(notiz = null) {
             bereich: "notizen",
             action: istBearbeitung ? "update" : "create",
             title: formular.elements.title.value.trim(),
-            text: formular.elements.text.value.trim(),
-            author: formular.elements.author.value.trim()
+            text: formular.elements.text.value.trim()
         };
 
         if (istBearbeitung) {
@@ -602,10 +619,20 @@ function notizFormularAnzeigen(notiz = null) {
 }
 
 function neueNotiz() {
+    if (!benoetigtLogin(() => zeigeNotizen().then(() => notizFormularAnzeigen()))) return;
+
     notizFormularAnzeigen();
 }
 
+function bearbeitenNotiz(notiz) {
+    if (!benoetigtLogin(() => zeigeNotizen())) return;
+
+    notizFormularAnzeigen(notiz);
+}
+
 async function loeschenNotiz(notiz) {
+    if (!benoetigtLogin(() => zeigeNotizen())) return;
+
     if (!notiz.id) {
         alert("Diese Notiz hat keine ID und kann nicht gelöscht werden.");
         return;
@@ -668,7 +695,158 @@ function initialisiereTheme() {
 
 initialisiereTheme();
 
+/* ---------- Konten: Anmeldung und Registrierung ---------- */
+
+function ladeSitzung() {
+    try {
+        const s = JSON.parse(localStorage.getItem("glossar-sitzung") || "null");
+        return s && s.name && s.token ? s : null;
+    } catch (fehler) {
+        return null;
+    }
+}
+
+function speichereSitzung(sitzung) {
+    localStorage.setItem("glossar-sitzung", JSON.stringify(sitzung));
+}
+
+function loescheSitzung() {
+    localStorage.removeItem("glossar-sitzung");
+}
+
+// Gibt true zurück, wenn jemand angemeldet ist. Sonst öffnet sich das
+// Anmeldeformular, und danach wird "weiter" ausgeführt.
+function benoetigtLogin(weiter) {
+    if (ladeSitzung()) return true;
+    zeigeLogin(weiter);
+    return false;
+}
+
+async function abmelden() {
+    try {
+        await apiAnfrage({ bereich: "konto", action: "logout" });
+    } catch (fehler) {
+        // Lokal abmelden funktioniert auch ohne Antwort vom Server
+    }
+    loescheSitzung();
+    aktualisiereKonto();
+    zeigeGlossar();
+}
+
+function aktualisiereKonto() {
+    let leiste = document.getElementById("kontoLeiste");
+
+    if (!leiste) {
+        leiste = document.createElement("div");
+        leiste.id = "kontoLeiste";
+        leiste.className = "konto-leiste";
+        (document.querySelector("header") || document.body).appendChild(leiste);
+    }
+
+    leiste.replaceChildren();
+
+    const sitzung = ladeSitzung();
+    const info = document.createElement("span");
+
+    if (sitzung) {
+        info.textContent = "Angemeldet als " + sitzung.name;
+
+        const knopf = document.createElement("button");
+        knopf.type = "button";
+        knopf.textContent = "Abmelden";
+        knopf.addEventListener("click", abmelden);
+
+        leiste.append(info, knopf);
+    } else {
+        info.textContent = "Nicht angemeldet";
+
+        const anmelden = document.createElement("button");
+        anmelden.type = "button";
+        anmelden.textContent = "Anmelden";
+        anmelden.addEventListener("click", () => zeigeLogin(() => zeigeGlossar(), "login"));
+
+        const registrieren = document.createElement("button");
+        registrieren.type = "button";
+        registrieren.textContent = "Registrieren";
+        registrieren.addEventListener("click", () => zeigeLogin(() => zeigeGlossar(), "register"));
+
+        leiste.append(info, anmelden, registrieren);
+    }
+}
+
+function zeigeLogin(weiter, modus = "login") {
+    const istLogin = modus === "login";
+
+    document.getElementById("app").innerHTML = `
+        <div class="formularbereich">
+            <h3>${istLogin ? "Anmelden" : "Konto erstellen"}</h3>
+            <p class="untertitel">
+                ${istLogin
+                    ? "Melde dich an, um Einträge zu erstellen oder zu ändern."
+                    : "Wähle einen Benutzernamen und ein Passwort."}
+            </p>
+
+            <form id="loginFormular">
+                <label for="loginName">Benutzername</label>
+                <input id="loginName" name="name" required minlength="3"
+                    maxlength="30" autocomplete="username">
+
+                <label for="loginPasswort">Passwort</label>
+                <input id="loginPasswort" name="passwort" type="password"
+                    required minlength="6" maxlength="100"
+                    autocomplete="${istLogin ? "current-password" : "new-password"}">
+
+                <div class="formularaktionen">
+                    <button type="submit" id="loginSenden">
+                        ${istLogin ? "Anmelden" : "Konto erstellen"}
+                    </button>
+                    <button type="button" id="loginWechsel" class="sekundaer-button">
+                        ${istLogin ? "Noch kein Konto? Registrieren" : "Schon ein Konto? Anmelden"}
+                    </button>
+                </div>
+            </form>
+
+            <p id="loginStatus" role="status" aria-live="polite"></p>
+            <p class="hinweis">Dies ist ein Uni-Projekt. Nutze bitte kein Passwort, das du auch woanders verwendest.</p>
+        </div>
+    `;
+
+    const formular = document.getElementById("loginFormular");
+    const status = document.getElementById("loginStatus");
+    const senden = document.getElementById("loginSenden");
+
+    document.getElementById("loginWechsel").addEventListener("click", () =>
+        zeigeLogin(weiter, istLogin ? "register" : "login")
+    );
+
+    formular.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        senden.disabled = true;
+        status.textContent = istLogin ? "Anmeldung läuft ..." : "Konto wird erstellt ...";
+
+        try {
+            const antwort = await apiAnfrage({
+                bereich: "konto",
+                action: istLogin ? "login" : "register",
+                name: formular.elements.name.value.trim(),
+                passwort: formular.elements.passwort.value
+            });
+
+            speichereSitzung({ name: antwort.name, token: antwort.token });
+            aktualisiereKonto();
+            (weiter || zeigeGlossar)();
+        } catch (fehler) {
+            status.textContent = fehler.message;
+            senden.disabled = false;
+        }
+    });
+
+    document.getElementById("loginName").focus();
+}
+
+aktualisiereKonto();
+
 /* ---------- Start ---------- */
 
 zeigeGlossar();
-

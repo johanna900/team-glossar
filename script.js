@@ -126,7 +126,7 @@ async function zeigeGlossar(optionen = {}) {
             const text = document.createElement("p");
             text.textContent = suchtext
                 ? "Versuche einen anderen Suchbegriff."
-                : "Füge den ersten Begriff zu eurem Glossar hinzu.";
+                : "Füge den ersten Begriff zu eurem TeamGlossar hinzu.";
 
             leer.append(titel, text);
             liste.appendChild(leer);
@@ -372,6 +372,8 @@ async function loeschenBegriff(begriff) {
 
 let alleNotizen = [];
 
+let suchbegriffNotizen = "";
+
 async function zeigeNotizen(optionen = {}) {
     setzeAktivenBereich("notizen");
 
@@ -385,6 +387,17 @@ async function zeigeNotizen(optionen = {}) {
             <button id="neueNotizButton" type="button">+ Neue Notiz</button>
         </div>
 
+        <div class="suchbereich">
+            <label for="notizSuche">Notizen durchsuchen</label>
+            <input
+                id="notizSuche"
+                type="search"
+                placeholder="Titel, Text oder Autor suchen ..."
+                autocomplete="off"
+            >
+            <p id="notizTrefferInfo" class="hinweis">Notizen werden geladen ...</p>
+        </div>
+
         <p id="notizStatus" class="hinweis" role="status" aria-live="polite"></p>
 
         <div class="liste" id="notizListe" aria-live="polite">
@@ -395,42 +408,44 @@ async function zeigeNotizen(optionen = {}) {
     document.getElementById("neueNotizButton")
         .addEventListener("click", neueNotiz);
 
+    const suche = document.getElementById("notizSuche");
     const liste = document.getElementById("notizListe");
+    const trefferInfo = document.getElementById("notizTrefferInfo");
     const status = document.getElementById("notizStatus");
 
-    try {
-        const antwort = await fetch(API_URL + "?bereich=notizen");
+    suche.value = optionen.suche ?? suchbegriffNotizen;
 
-        if (!antwort.ok) {
-            throw new Error("HTTP " + antwort.status);
-        }
+    function renderNotizen() {
+        const suchtext = suche.value.trim().toLocaleLowerCase("de");
+        suchbegriffNotizen = suche.value;
 
-        const daten = await antwort.json();
+        const gefiltert = alleNotizen.filter(notiz =>
+            [notiz.title, notiz.text, notiz.author]
+                .filter(Boolean).join(" ").toLocaleLowerCase("de")
+                .includes(suchtext)
+        );
 
-        if (!Array.isArray(daten)) {
-            throw new Error("Die API hat keine Notizliste geliefert.");
-        }
-
-        alleNotizen = daten;
         liste.replaceChildren();
+        trefferInfo.textContent =
+            `${gefiltert.length} von ${alleNotizen.length} Notizen`;
 
-        if (optionen.status) {
-            status.textContent = optionen.status;
-        }
-
-        if (alleNotizen.length === 0) {
+        if (gefiltert.length === 0) {
             const leer = document.createElement("div");
             leer.className = "leerzustand";
             const titel = document.createElement("h3");
-            titel.textContent = "Noch keine Notizen vorhanden";
+            titel.textContent = suchtext
+                ? "Keine Treffer gefunden"
+                : "Noch keine Notizen vorhanden";
             const text = document.createElement("p");
-            text.textContent = "Lege die erste Notiz für euer Team an.";
+            text.textContent = suchtext
+                ? "Versuche einen anderen Suchbegriff."
+                : "Lege die erste Notiz für euer Team an.";
             leer.append(titel, text);
             liste.appendChild(leer);
             return;
         }
 
-        alleNotizen.forEach(notiz => {
+        gefiltert.forEach(notiz => {
             const karte = document.createElement("article");
             karte.className = "begriffkarte";
 
@@ -470,6 +485,29 @@ async function zeigeNotizen(optionen = {}) {
             karte.appendChild(aktionen);
             liste.appendChild(karte);
         });
+    }
+
+    suche.addEventListener("input", renderNotizen);
+
+    try {
+        const antwort = await fetch(API_URL + "?bereich=notizen");
+
+        if (!antwort.ok) {
+            throw new Error("HTTP " + antwort.status);
+        }
+
+        const daten = await antwort.json();
+
+        if (!Array.isArray(daten)) {
+            throw new Error("Die API hat keine Notizliste geliefert.");
+        }
+
+        alleNotizen = daten;
+        renderNotizen();
+
+        if (optionen.status) {
+            status.textContent = optionen.status;
+        }
     } catch (fehler) {
         liste.replaceChildren();
         const meldung = document.createElement("p");
@@ -477,6 +515,7 @@ async function zeigeNotizen(optionen = {}) {
         meldung.textContent =
             "Notizen konnten nicht geladen werden: " + fehler.message;
         liste.appendChild(meldung);
+        trefferInfo.textContent = fehler.message;
     }
 }
 
@@ -589,6 +628,45 @@ async function loeschenNotiz(notiz) {
         status.textContent = "Fehler beim Löschen: " + fehler.message;
     }
 }
+
+/* ---------- Hell/Dunkel-Modus ---------- */
+
+function setzeTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+
+    const button = document.getElementById("themeButton");
+
+    if (button) {
+        const dunkel = theme === "dark";
+        button.textContent = dunkel ? "☀️ Hell" : "🌙 Dunkel";
+        button.setAttribute(
+            "aria-label",
+            dunkel ? "Zum hellen Modus wechseln" : "Zum dunklen Modus wechseln"
+        );
+    }
+}
+
+function initialisiereTheme() {
+    const button = document.createElement("button");
+    button.id = "themeButton";
+    button.type = "button";
+    button.className = "theme-button";
+    document.body.appendChild(button);
+
+    button.addEventListener("click", () => {
+        const aktuell = document.documentElement.getAttribute("data-theme");
+        setzeTheme(aktuell === "dark" ? "light" : "dark");
+    });
+
+    // Gespeicherte Wahl nutzen, sonst die Einstellung des Geräts
+    const gespeichert = localStorage.getItem("theme");
+    const systemDunkel = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    setzeTheme(gespeichert || (systemDunkel ? "dark" : "light"));
+}
+
+initialisiereTheme();
 
 /* ---------- Start ---------- */
 

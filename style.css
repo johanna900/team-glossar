@@ -939,3 +939,12 @@ html[data-theme="dark"] .theme-button {
     border-color: var(--rand);
     color: var(--text);
 }
+header nav button:first-child:not(.aktiv-glossar):not(.aktiv-notizen) {
+    background: var(--notizen-farbe);
+    color: #ffffff;
+}
+
+header nav button:first-child:not(.aktiv-glossar):not(.aktiv-notizen):hover {
+    background: var(--notizen-farbe);
+    filter: brightness(0.9);
+}

@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxPugPvM8YyVeYzGoJYFueV6-5SW-y4q-9Fqan79LI0UKwAPP1IuGmYmqMRoQj7AFG2/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwRVYJ3FgLZz_MjtV6ITcdX5v63S5hbbMCPeRu27EYFl8CU8AKiBUvVCf5IDz6QV8nf/exec";
 
 let alleBegriffe = [];
 let suchbegriffAktuell = "";

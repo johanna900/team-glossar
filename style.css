@@ -979,7 +979,23 @@ header nav button:first-child:not(.aktiv-glossar):not(.aktiv-notizen):hover {
     padding: 10px 16px;
     font-size: 14px;
 }
+/* Anmelden- und Registrieren-Button in Lila */
 
+#loginSenden {
+    background: #7c3aed;
+}
+
+#loginSenden:hover {
+    background: #6d28d9;
+}
+
+html[data-theme="dark"] #loginSenden {
+    background: #8b5cf6;
+}
+
+html[data-theme="dark"] #loginSenden:hover {
+    background: #7c3aed;
+}
 .konto-leiste button:hover,
 .sekundaer-button:hover {
     background: var(--hintergrund);

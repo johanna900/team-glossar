@@ -1002,3 +1002,16 @@ html[data-theme="dark"] #loginSenden {
 html[data-theme="dark"] #loginSenden:hover {
     background: #c2185b;
 }
+/* Buttons im Notiz-Formular in Grün */
+
+#notizSpeichern,
+#notizAbbrechen {
+    background: var(--notizen-farbe);
+    color: #ffffff;
+}
+
+#notizSpeichern:hover,
+#notizAbbrechen:hover {
+    background: var(--notizen-farbe);
+    filter: brightness(0.9);
+}

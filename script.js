@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwRVYJ3FgLZz_MjtV6ITcdX5v63S5hbbMCPeRu27EYFl8CU8AKiBUvVCf5IDz6QV8nf/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbybsJKxWfUbeysLy2QdTTE4MT45PWjWnwMLx_yQaVslSt7J2Z4NXBw-fNvkXXnCgAog/exec";
 
 let alleBegriffe = [];
 let suchbegriffAktuell = "";
@@ -196,7 +196,10 @@ async function zeigeGlossar(optionen = {}) {
             loeschen.addEventListener("click", () => loeschenBegriff(begriff));
 
             aktionen.append(bearbeiten, loeschen);
-            karte.appendChild(aktionen);
+            // Bearbeiten und Löschen sieht nur, wer angemeldet ist
+            if (ladeSitzung()) {
+                karte.appendChild(aktionen);
+            }
             liste.appendChild(karte);
         });
     }
@@ -503,7 +506,10 @@ async function zeigeNotizen(optionen = {}) {
             loeschen.addEventListener("click", () => loeschenNotiz(notiz));
 
             aktionen.append(bearbeiten, loeschen);
-            karte.appendChild(aktionen);
+            // Bearbeiten und Löschen sieht nur, wer angemeldet ist
+            if (ladeSitzung()) {
+                karte.appendChild(aktionen);
+            }
             liste.appendChild(karte);
         });
     }
@@ -850,3 +856,4 @@ aktualisiereKonto();
 /* ---------- Start ---------- */
 
 zeigeGlossar();
+

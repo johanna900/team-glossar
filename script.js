@@ -145,7 +145,7 @@ async function zeigeGlossar(optionen = {}) {
             const text = document.createElement("p");
             text.textContent = suchtext
                 ? "Versuche einen anderen Suchbegriff."
-                : "Füge den ersten Begriff zu eurem TeamGlossar hinzu.";
+                : "Füge den ersten Begriff zum Lernglossar hinzu.";
 
             leer.append(titel, text);
             liste.appendChild(leer);
@@ -263,11 +263,20 @@ function begriffFormularAnzeigen(begriff = null) {
             <form id="begriffFormular">
                 <label for="term">Begriff *</label>
                 <input id="term" name="term" required maxlength="200"
-                    placeholder="z. B. Onboarding">
+                    placeholder="z. B. Prompt Engineering">
 
                 <label for="category">Kategorie</label>
                 <input id="category" name="category" maxlength="100"
-                    placeholder="z. B. Personal">
+                    list="kategorienListe"
+                    placeholder="Kategorie wählen oder eigene eingeben">
+                <datalist id="kategorienListe">
+                    <option value="KI und Prompting"></option>
+                    <option value="Webentwicklung"></option>
+                    <option value="Datenbank und Backend"></option>
+                    <option value="Versionsverwaltung"></option>
+                    <option value="Sicherheit"></option>
+                    <option value="Projektmanagement"></option>
+                </datalist>
 
                 <label for="definition">Definition *</label>
                 <textarea id="definition" name="definition" required
@@ -406,7 +415,7 @@ async function zeigeNotizen(optionen = {}) {
             <div>
                 <p class="seitenlabel">TEAM & ZUSAMMENARBEIT</p>
                 <h2>Notizen</h2>
-                <p class="untertitel">Ideen und wichtige Informationen sammeln.</p>
+                <p class="untertitel">Klausurtipps, Fragen, Termine und Ideen sammeln.</p>
             </div>
             <button id="neueNotizButton" type="button">+ Neue Notiz</button>
         </div>
@@ -557,7 +566,7 @@ function notizFormularAnzeigen(notiz = null) {
             <form id="notizFormular">
                 <label for="notizTitel">Titel *</label>
                 <input id="notizTitel" name="title" required maxlength="200"
-                    placeholder="z. B. Ideen für das Projekttreffen">
+                    placeholder="z. B. [Klausur] Themen zum Wiederholen">
 
                 <label for="notizText">Notiz *</label>
                 <textarea id="notizText" name="text" required
@@ -852,6 +861,24 @@ function zeigeLogin(weiter, modus = "login") {
 }
 
 aktualisiereKonto();
+
+/* ---------- Titel der Seite ---------- */
+
+document.title = "Lernglossar – KI-gestützte Anwendungsentwicklung";
+
+(function setzeSeitentitel() {
+    const titel = document.querySelector("header h1");
+    const untertitel = document.querySelector("header p");
+
+    if (titel) {
+        titel.textContent = "Lernglossar";
+    }
+
+    if (untertitel) {
+        untertitel.textContent =
+            "Gemeinsam Begriffe klären und für KI-gestützte Anwendungsentwicklung lernen";
+    }
+})();
 
 /* ---------- Start ---------- */
 

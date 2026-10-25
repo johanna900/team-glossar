@@ -180,6 +180,14 @@ async function zeigeGlossar(optionen = {}) {
                 karte.appendChild(autor);
             }
 
+            if (begriff.editor) {
+                const geaendert = document.createElement("p");
+                geaendert.className = "hinweis";
+                geaendert.textContent = "Zuletzt geändert von " + begriff.editor +
+                    (begriff.edited ? " am " + begriff.edited : "");
+                karte.appendChild(geaendert);
+            }
+
             const aktionen = document.createElement("div");
             aktionen.className = "begriff-aktionen";
 
@@ -195,7 +203,11 @@ async function zeigeGlossar(optionen = {}) {
             loeschen.textContent = "🗑️ Löschen";
             loeschen.addEventListener("click", () => loeschenBegriff(begriff));
 
-            aktionen.append(bearbeiten, loeschen);
+            aktionen.append(bearbeiten);
+
+            if (istEigener(begriff.author)) {
+                aktionen.append(loeschen);
+            }
             // Bearbeiten und Löschen sieht nur, wer angemeldet ist
             if (ladeSitzung()) {
                 karte.appendChild(aktionen);
@@ -370,6 +382,11 @@ function bearbeitenBegriff(begriff) {
 async function loeschenBegriff(begriff) {
     if (!benoetigtLogin(() => zeigeGlossar())) return;
 
+    if (!istEigener(begriff.author)) {
+        alert("Du kannst nur Einträge löschen, die du selbst erstellt hast.");
+        return;
+    }
+
     if (!begriff.id) {
         alert("Dieser Eintrag hat keine ID und kann nicht gelöscht werden.");
         return;
@@ -499,6 +516,14 @@ async function zeigeNotizen(optionen = {}) {
                 karte.appendChild(autor);
             }
 
+            if (notiz.editor) {
+                const geaendert = document.createElement("p");
+                geaendert.className = "hinweis";
+                geaendert.textContent = "Zuletzt geändert von " + notiz.editor +
+                    (notiz.edited ? " am " + notiz.edited : "");
+                karte.appendChild(geaendert);
+            }
+
             const aktionen = document.createElement("div");
             aktionen.className = "begriff-aktionen";
 
@@ -514,7 +539,11 @@ async function zeigeNotizen(optionen = {}) {
             loeschen.textContent = "🗑️ Löschen";
             loeschen.addEventListener("click", () => loeschenNotiz(notiz));
 
-            aktionen.append(bearbeiten, loeschen);
+            aktionen.append(bearbeiten);
+
+            if (istEigener(notiz.author)) {
+                aktionen.append(loeschen);
+            }
             // Bearbeiten und Löschen sieht nur, wer angemeldet ist
             if (ladeSitzung()) {
                 karte.appendChild(aktionen);
@@ -648,6 +677,11 @@ function bearbeitenNotiz(notiz) {
 async function loeschenNotiz(notiz) {
     if (!benoetigtLogin(() => zeigeNotizen())) return;
 
+    if (!istEigener(notiz.author)) {
+        alert("Du kannst nur Einträge löschen, die du selbst erstellt hast.");
+        return;
+    }
+
     if (!notiz.id) {
         alert("Diese Notiz hat keine ID und kann nicht gelöscht werden.");
         return;
@@ -727,6 +761,16 @@ function speichereSitzung(sitzung) {
 
 function loescheSitzung() {
     localStorage.removeItem("glossar-sitzung");
+}
+
+// Ist der angemeldete Nutzer der Autor dieses Eintrags?
+function istEigener(autor) {
+    const sitzung = ladeSitzung();
+
+    return Boolean(
+        sitzung && autor &&
+        String(autor).toLowerCase() === sitzung.name.toLowerCase()
+    );
 }
 
 // Gibt true zurück, wenn jemand angemeldet ist. Sonst öffnet sich das
